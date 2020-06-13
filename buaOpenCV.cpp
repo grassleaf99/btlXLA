@@ -2,7 +2,7 @@
 //
 
 #include <opencv2/opencv.hpp>
-#include <stdio.h>
+#include <vector>
 
 using namespace std;
 using namespace cv;
@@ -14,29 +14,50 @@ int main()
 	//*****************************************************************************************************************************
 
 	Mat lane = imread("E:\\Visual Studio Project\\buaOpenCV\\lane.jpg");
+	cout << lane.rows << " " << lane.cols << endl;
 	Mat grayLane;
 	cvtColor(lane, grayLane, CV_BGR2GRAY);
 	imshow("Lane", lane);
-	imshow("Gray lane", grayLane);
+	imshow("First gray lane", grayLane);
+	for (int i = 0; i < grayLane.rows; i++)
+		for (int j = 0; j < grayLane.cols; j++)
+			if (grayLane.at<uchar>(i, j) < 225)
+				grayLane.at<uchar>(i, j) -= 25;
+	imshow("Processed gray lane", grayLane);
 	cv::Mat laneHSV, hsv[3];
 	cv::cvtColor(lane, laneHSV, cv::COLOR_BGR2HSV);	// ảnh scrHSV là ảnh scr biến đổi từ BGR sang HSV
 	// Tách các kênh màu hsv[0] = H, hsv[1] = S, hsv[2] = V
 	cv::split(laneHSV, hsv);
 	cv::imshow("HSV image", laneHSV);
 	Mat maskYellow, maskWhite, mask, processed;
-	inRange(grayLane, Scalar(20, 100, 100), Scalar(30, 255, 255), maskYellow);
-	inRange(grayLane, Scalar(150, 150, 150), Scalar(255, 255, 255), maskWhite);
-	bitwise_or(maskYellow, maskWhite, mask); 
+	inRange(grayLane, Scalar(0, 200, 0), Scalar(200, 255, 255), maskWhite);
+	inRange(grayLane, Scalar(10, 0, 100), Scalar(40, 255, 255), maskYellow);
+	bitwise_or(maskWhite, maskYellow, mask);
+	//inRange(grayLane, Scalar(20, 100, 100), Scalar(30, 255, 255), maskYellow);
+	//inRange(grayLane, Scalar(150, 150, 150), Scalar(255, 255, 255), maskWhite);
+	//bitwise_or(maskYellow, maskWhite, mask);  
 	//Combine the two masks 
 	bitwise_and(grayLane, mask, processed);
 	imshow("Anh duong den trang", processed);
 	Mat grayGB;
-	const Size kernelSize = Size(9, 9);
+	const Size kernelSize = Size(7, 7);
+	//GaussianBlur(processed, grayGB, kernelSize, 2, 2);
 	GaussianBlur(processed, grayGB, kernelSize, 0);
 	imshow("Anh duong sau gaussian blur", grayGB);
 	Mat grayCanny;
-	Canny(grayGB, grayCanny, 110, 210);
+	//Canny(grayGB, grayCanny, 110, 210);
+	Canny(grayGB, grayCanny, 70, 140);
 	imshow("Anh duong sau canny", grayCanny);
+
+	vector<Vec4i> lines;
+	HoughLinesP(grayCanny, lines, 1, CV_PI/180, 20, 20, 10);
+	Vec4i l0, l1;
+	for (int i = 0; i < lines.size(); i++)
+	{
+		l1 = lines[i];
+		line(lane, Point(l1[0], l1[1]), Point(l1[2], l1[3]), Scalar(0, 255, 0), 1);
+	}
+	imshow("Lane detection", lane);
 	waitKey(0);
 
 	//*****************************************************************************************************************************
