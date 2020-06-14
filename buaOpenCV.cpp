@@ -84,12 +84,13 @@ int main()
 	imshow("Anh duong sau canny", grayCanny);
 
 	vector<Vec4i> lines;
-	HoughLinesP(grayCanny, lines, 1, CV_PI/180, 20, 20, 10);
+	Rect rect = Rect(grayCanny.cols * 0.15, grayCanny.rows * 0.6, 0.75 * grayCanny.cols, 0.4 * grayCanny.rows);
+	HoughLinesP(grayCanny(rect), lines, 1, CV_PI/180, 20, 20, 10);
 	Vec4i l0, l1;
 	for (int i = 0; i < lines.size(); i++)
 	{
 		l1 = lines[i];
-		line(lane, Point(l1[0], l1[1]), Point(l1[2], l1[3]), Scalar(0, 255, 0), 1);
+		line(lane, Point(l1[0] + grayCanny.cols * 0.15, l1[1] + grayCanny.rows * 0.6), Point(l1[2] + grayCanny.cols * 0.15, l1[3] + grayCanny.rows * 0.6), Scalar(0, 255, 0), 2);
 	}
 	//for (int i = 1; i < lines.size(); i++)
 	//{
