@@ -4,24 +4,42 @@
 #include <opencv2/opencv.hpp>
 #include <vector>
 
+#include <opencv2/imgproc/imgproc.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <iostream>
+#include <string>
+
 using namespace std;
 using namespace cv;
 
 int main()
 {
 	
-
+	const String filename = "E:\\Visual Studio Project\\buaOpenCV\\ride.MOV";
+	VideoCapture cap(filename);
+	if (!cap.isOpened())
+	{
+		cout << "Could not open video stream." << endl;
+		return 1;
+	}
+	Mat lane;
+	while (true)
+	{
+		//Read a frame
+		cap.read(lane);
+		if (lane.empty()) //When this happens we've reached the end
+			break;
 	//*****************************************************************************************************************************
 	
 	// anh goc la anh lane
-	Mat lane = imread("E:\\Visual Studio Project\\buaOpenCV\\lane.jpg");
-	cout << lane.rows << " " << lane.cols << endl;	// in ra so hang va so cot cua anh lane
+	//Mat lane = imread("E:\\Visual Studio Project\\buaOpenCV\\lane.jpg");
+	//cout << lane.rows << " " << lane.cols << endl;	// in ra so hang va so cot cua anh lane
 
 	Mat grayLane;
 	cvtColor(lane, grayLane, CV_BGR2GRAY);	// anh grayLane la anh lane chuyen sang gray scale
 
-	imshow("Lane", lane);	// hien thi anh lane
-	imshow("First gray lane", grayLane);	// hien thi anh grayLane chua qua lam toi
+	//imshow("Lane", lane);	// hien thi anh lane
+	//imshow("First gray lane", grayLane);	// hien thi anh grayLane chua qua lam toi
 	
 	for (int i = 0; i < grayLane.rows; i++)
 		for (int j = 0; j < grayLane.cols; j++)
@@ -33,7 +51,7 @@ int main()
 			else if (grayLane.at<uchar>(i, j) < 250)
 				grayLane.at<uchar>(i, j) -= 20;
 		}
-	imshow("Processed gray lane", grayLane);	// hien thi anh grayLane da qua lam toi
+	//imshow("Processed gray lane", grayLane);	// hien thi anh grayLane da qua lam toi
 	
 	// tao mask yellow va mask white de tach phan vach duong vang va trang
 	Mat maskYellow, maskWhite, mask, processed;
@@ -46,7 +64,7 @@ int main()
 	bitwise_or(maskYellow, maskWhite, mask);  
 	// anh processed la ket hop mask yellow + white voi grayLane
 	bitwise_and(grayLane, mask, processed);
-	imshow("Anh duong den trang", processed);
+	//imshow("Anh duong den trang", processed);
 	
 	// loc anh = gaussian blur
 	Mat grayGB;
@@ -55,13 +73,13 @@ int main()
 	//const Size kernelSize = Size(7, 7);	// huong dan link python
 	//GaussianBlur(processed, grayGB, kernelSize, 2, 2);
 	GaussianBlur(processed, grayGB, kernelSize, 0);
-	imshow("Anh duong sau gaussian blur", grayGB);
+	//imshow("Anh duong sau gaussian blur", grayGB);
 	
 	// tim bien vach ke duong = canny
 	Mat grayCanny;
 	//Canny(grayGB, grayCanny, 110, 210);
 	Canny(grayGB, grayCanny, 70, 140);
-	imshow("Anh duong sau canny", grayCanny);
+	//imshow("Anh duong sau canny", grayCanny);
 
 	// tim vach ke duong = hough
 	vector<Vec4i> lines;
@@ -76,7 +94,10 @@ int main()
 		line(lane, Point(l1[0] + grayCanny.cols * 0.15, l1[1] + grayCanny.rows * 0.6), Point(l1[2] + grayCanny.cols * 0.15, l1[3] + grayCanny.rows * 0.6), Scalar(0, 255, 0), 2);
 	}
 	imshow("Lane detection", lane);
-	
+	if (waitKey(50) > 0)
+			break;
+	}
+	cap.release();
 	waitKey(0);
 
 	//*****************************************************************************************************************************
