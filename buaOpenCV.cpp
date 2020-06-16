@@ -16,6 +16,7 @@ int main()
 {
 	
 	const String filename = "E:\\Visual Studio Project\\buaOpenCV\\ride.MOV";
+	//const String filename = "E:\\Visual Studio Project\\buaOpenCV\\solidWhiteRight.mp4";
 	VideoCapture cap(filename);
 	if (!cap.isOpened())
 	{
